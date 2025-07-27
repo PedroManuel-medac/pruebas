@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Instagram - Quién no te sigue</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 2rem;
+      background: #f9f9f9;
+      color: #333;
+    }
+    h1 {
+      color: #222;
+    }
+    input[type="file"] {
+      margin-bottom: 1rem;
+    }
+    #result {
+      margin-top: 2rem;
+    }
+    ul {
+      padding-left: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>¿Quién no te sigue en Instagram?</h1>
+  <p>Sube tus archivos <strong>followers.json</strong> y <strong>following.json</strong> exportados desde Instagram.</p>
+
+  <input type="file" id="followersFile" accept=".json">
+  <br>
+  <input type="file" id="followingFile" accept=".json">
+  <br>
+  <button onclick="analizar()">Analizar</button>
+
+  <div id="result"></div>
+
+  <script>
+  let followers = [];
+  let following = [];
+
+  function leerArchivo(input, callback) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const json = JSON.parse(reader.result);
+        callback(json);
+      } catch (e) {
+        alert("Archivo JSON no válido");
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function extraerUsuarios(arr) {
+    const usuarios = arr
+      .map(item => item?.string_list_data?.[0]?.value)
+      .filter(Boolean); // filtra null, undefined o strings vacíos
+    return [...new Set(usuarios)]; // elimina duplicados por si acaso
+  }
+
+  function analizar() {
+    const followersFile = document.getElementById("followersFile");
+    const followingFile = document.getElementById("followingFile");
+
+    if (!followersFile.files[0] || !followingFile.files[0]) {
+      alert("Por favor, sube ambos archivos.");
+      return;
+    }
+
+    leerArchivo(followersFile, followersJson => {
+      followers = extraerUsuarios(followersJson);
+
+      leerArchivo(followingFile, followingJson => {
+        following = extraerUsuarios(followingJson.relationships_following);
+
+        const noTeSiguen = following.filter(user => !followers.includes(user));
+
+        const resultDiv = document.getElementById("result");
+        resultDiv.innerHTML = `<h2>Personas que sigues pero no te siguen:</h2>
+                               <p>Total: ${noTeSiguen.length}</p>
+                               <ul>${noTeSiguen.map(user => `<li>@${user}</li>`).join('')}</ul>`;
+      });
+    });
+  }
+</script>
+
+</body>
+</html>
