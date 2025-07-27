@@ -59,8 +59,8 @@
   function extraerUsuarios(arr) {
     const usuarios = arr
       .map(item => item?.string_list_data?.[0]?.value)
-      .filter(Boolean); // filtra null, undefined o strings vacíos
-    return [...new Set(usuarios)]; // elimina duplicados por si acaso
+      .filter(Boolean); 
+    return [...new Set(usuarios)]; 
   }
 
   function analizar() {
